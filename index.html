@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Marco Vidal — Goalkeeper Portfolio</title>
+
+  <!-- Inline SVG favicon: a tiny pentagon-paneled ball -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>
+      <circle cx='32' cy='32' r='30' fill='white' stroke='%23111' stroke-width='3'/>
+      <polygon points='32,18 40,24 37,34 27,34 24,24' fill='%23111'/>
+      <line x1='32' y1='18' x2='32' y2='8'  stroke='%23111' stroke-width='2'/>
+      <line x1='40' y1='24' x2='50' y2='20' stroke='%23111' stroke-width='2'/>
+      <line x1='37' y1='34' x2='44' y2='44' stroke='%23111' stroke-width='2'/>
+      <line x1='27' y1='34' x2='20' y2='44' stroke='%23111' stroke-width='2'/>
+      <line x1='24' y1='24' x2='14' y2='20' stroke='%23111' stroke-width='2'/>
+    </svg>" />
+
+  <style>
+    /* ==========================================================
+       Design tokens — single source of truth for colors / radii
+       Zen of Python: "There should be one obvious way to do it."
+       ========================================================== */
+    :root {
+      --pitch-deep:   #0e3b1f;
+      --pitch:        #14532d;
+      --pitch-soft:   #2f8a4d;
+      --chalk:        #f6f8f4;
+      --kit-accent:   #ff6b35;   /* boot/kit accent */
+      --ink:          #14181a;
+      --muted:        #6c7570;
+      --card:         #ffffff;
+      --line:         #e3e8e1;
+      --shadow:       0 8px 24px rgba(14, 59, 31, 0.12);
+      --radius:       14px;
+      --radius-sm:    8px;
+      --max-w:        920px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   Roboto, "Helvetica Neue", sans-serif;
+      color: var(--ink);
+      background: var(--chalk);
+      line-height: 1.55;
+    }
+
+    a { color: var(--pitch); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ----------------------------- Hero ----------------------------- */
+    .hero {
+      position: relative;
+      min-height: 380px;
+      padding: 3rem 1.25rem 4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #fff;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 75% 20%, rgba(255,255,255,0.12), transparent 55%),
+        linear-gradient(135deg, var(--pitch-deep) 0%, var(--pitch) 55%, var(--pitch-soft) 100%);
+    }
+
+    /* Faint pitch stripes overlay — purely decorative */
+    .hero::after {
+      content: "";
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.05) 0 60px,
+        transparent             60px 120px
+      );
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 760px;
+    }
+
+    .player-photo {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #d8d8d8;
+      border: 4px solid var(--kit-accent);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      margin: 0 0 0.35rem;
+      letter-spacing: -0.01em;
+    }
+
+    .hero .tagline {
+      font-size: 1.05rem;
+      opacity: 0.92;
+      margin: 0 0 1.25rem;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 0.85rem;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ---------------------------- Layout ---------------------------- */
+    main {
+      max-width: var(--max-w);
+      margin: -2.5rem auto 3rem;
+      padding: 0 1rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+    }
+
+    /* ----------------------------- Tabs ----------------------------- */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      flex-wrap: wrap;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 0.4rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 1rem;
+    }
+
+    .tab {
+      flex: 1 1 auto;
+      min-width: 110px;
+      padding: 0.65rem 0.9rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.92rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .tab:hover { color: var(--ink); background: var(--chalk); }
+
+    .tab.active {
+      background: var(--pitch);
+      color: #fff;
+    }
+
+    .tab:focus-visible {
+      outline: 2px solid var(--kit-accent);
+      outline-offset: 2px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: fade 0.2s ease; }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      margin: 0 0 1rem;
+      font-size: 1.35rem;
+      color: var(--pitch-deep);
+      border-bottom: 2px solid var(--line);
+      padding-bottom: 0.4rem;
+    }
+
+    h3 {
+      margin: 0 0 0.4rem;
+      font-size: 1.05rem;
+    }
+
+    p { margin: 0 0 0.9rem; }
+
+    .muted { color: var(--muted); font-size: 0.9rem; }
+
+    /* ----------------------- Reusable: Stat grid ----------------------- */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0 1.5rem;
+    }
+
+    .stat {
+      background: var(--chalk);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem;
+      text-align: center;
+    }
+
+    .stat .num {
+      display: block;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--pitch);
+      line-height: 1.1;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    /* -------------------------- Reusable: Table -------------------------- */
+    .table-wrap { overflow-x: auto; }
+
+    table.data {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+    }
+
+    table.data th, table.data td {
+      text-align: left;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    table.data th {
+      background: var(--chalk);
+      font-weight: 600;
+      color: var(--pitch-deep);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.75rem;
+    }
+
+    table.data tbody tr:hover { background: #fafaf6; }
+
+    .num-cell { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* -------------------------- Fixture list -------------------------- */
+    .fixture {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.85rem 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .fixture:last-child { border-bottom: none; }
+
+    .fixture .date {
+      flex: 0 0 90px;
+      text-align: center;
+      background: var(--pitch);
+      color: #fff;
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.3rem;
+      font-size: 0.78rem;
+      line-height: 1.2;
+    }
+    .fixture .date strong {
+      display: block;
+      font-size: 1.05rem;
+      letter-spacing: 0.03em;
+    }
+
+    .fixture .meta { flex: 1; }
+    .fixture .meta .opponent { font-weight: 600; }
+    .fixture .meta .where { font-size: 0.85rem; color: var(--muted); }
+
+    .fixture .comp {
+      flex: 0 0 auto;
+      background: var(--kit-accent);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ----------------------------- Video ----------------------------- */
+    .video-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+    }
+
+    .video-wrap iframe,
+    .video-wrap .placeholder {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      border: 0;
+    }
+
+    .video-wrap .placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      background:
+        radial-gradient(circle at 50% 50%, var(--pitch-soft), var(--pitch-deep));
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    /* ----------------------------- Footer ----------------------------- */
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem 2.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    /* ----------------------------- Mobile tweaks ----------------------------- */
+    @media (max-width: 540px) {
+      .hero { min-height: 320px; padding: 2.5rem 1rem 3.5rem; }
+      .player-photo { width: 110px; height: 110px; }
+      main { margin-top: -2rem; }
+      .card { padding: 1.1rem; }
+      .fixture { flex-wrap: wrap; }
+      .fixture .date { flex: 0 0 70px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================== HERO ============================== -->
+  <header class="hero">
+    <div class="hero-inner">
+      <!-- Swap src for a real photo; placeholder uses inline SVG -->
+      <img class="player-photo" alt="Marco Vidal portrait"
+           src="data:image/svg+xml;utf8,
+             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'>
+               <rect width='140' height='140' fill='%23cfd8d2'/>
+               <circle cx='70' cy='52' r='24' fill='%23222'/>
+               <path d='M22 130 Q70 78 118 130 Z' fill='%23ff6b35'/>
+               <text x='70' y='118' font-family='Inter, sans-serif' font-size='22' font-weight='700' text-anchor='middle' fill='white'>GK</text>
+             </svg>" />
+      <h1 id="player-name">Marco Vidal</h1>
+      <p class="tagline">Goalkeeper · #1 · Riverside FC</p>
+      <div class="badge-row">
+        <span class="badge">Right-handed</span>
+        <span class="badge">1.93 m</span>
+        <span class="badge">Age 25</span>
+        <span class="badge">Argentina</span>
+        <span class="badge">Reach 2.42 m</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================== MAIN ============================== -->
+  <main>
+
+    <!-- Tab bar — buttons drive panel visibility by data-tab match -->
+    <nav class="tabs" role="tablist" aria-label="Portfolio sections">
+      <button class="tab active" role="tab" data-tab="about"    aria-selected="true">About</button>
+      <button class="tab"        role="tab" data-tab="stats"    aria-selected="false">Career Stats</button>
+      <button class="tab"        role="tab" data-tab="season"   aria-selected="false">Season Log</button>
+      <button class="tab"        role="tab" data-tab="fixtures" aria-selected="false">Fixtures</button>
+      <button class="tab"        role="tab" data-tab="film"     aria-selected="false">Highlights</button>
+    </nav>
+
+    <!-- =================== Panel: About =================== -->
+    <section class="card panel active" id="panel-about" role="tabpanel">
+      <h2>About Me</h2>
+      <p>
+        Marco is a modern shot-stopper who commands his box and starts attacks with
+        his feet. Born in Rosario, he started out as an outfield player before a growth
+        spurt at fourteen sent him between the sticks — and he never looked back. He
+        joined the Riverside FC academy at sixteen, made his senior debut at twenty,
+        and has been the first-choice keeper for the past two seasons.
+      </p>
+      <p>
+        Off the pitch, Marco runs a Saturday-morning goalkeeping clinic for U12s,
+        studies sports psychology, and has a slightly unhinged collection of vintage
+        goalkeeper gloves dating back to the early 2000s.
+      </p>
+
+      <h3>Strengths</h3>
+      <ul>
+        <li>Reflex shot-stopping and reactive saves inside six yards</li>
+        <li>Commanding the box on crosses and set pieces</li>
+        <li>1v1 situations — patient, stays big, hands low</li>
+        <li>Distribution with both feet, especially long switches to the wings</li>
+      </ul>
+
+      <h3>Working On</h3>
+      <ul>
+        <li>Sweeper-keeper positioning when the back line steps up</li>
+        <li>Penalty research — building a personal database of opposition takers</li>
+        <li>Communication volume during the chaos of corner-kick scrambles</li>
+      </ul>
+    </section>
+
+    <!-- =================== Panel: Career Stats =================== -->
+    <section class="card panel" id="panel-stats" role="tabpanel">
+      <h2>Career Stats <small class="muted">(all senior competitions)</small></h2>
+
+      <div class="stat-grid">
+        <div class="stat"><span class="num">104</span> <span class="label">Appearances</span></div>
+        <div class="stat"><span class="num">38</span>  <span class="label">Clean Sheets</span></div>
+        <div class="stat"><span class="num">312</span> <span class="label">Saves</span></div>
+        <div class="stat"><span class="num">76%</span> <span class="label">Save %</span></div>
+        <div class="stat"><span class="num">0.94</span><span class="label">Goals Against /90</span></div>
+        <div class="stat"><span class="num">9</span>   <span class="label">Penalties Saved</span></div>
+      </div>
+
+      <h3>By Competition</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Competition</th>
+              <th class="num-cell">Apps</th>
+              <th class="num-cell">CS</th>
+              <th class="num-cell">Saves</th>
+              <th class="num-cell">GA</th>
+              <th class="num-cell">Save %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Premier Division</td>   <td class="num-cell">66</td><td class="num-cell">24</td><td class="num-cell">198</td><td class="num-cell">62</td><td class="num-cell">76%</td></tr>
+            <tr><td>National Cup</td>       <td class="num-cell">15</td><td class="num-cell">6</td> <td class="num-cell">44</td> <td class="num-cell">14</td><td class="num-cell">76%</td></tr>
+            <tr><td>Continental Cup</td>    <td class="num-cell">16</td><td class="num-cell">5</td> <td class="num-cell">52</td> <td class="num-cell">19</td><td class="num-cell">73%</td></tr>
+            <tr><td>National Team (U23)</td> <td class="num-cell">7</td> <td class="num-cell">3</td> <td class="num-cell">18</td> <td class="num-cell">6</td> <td class="num-cell">75%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- =================== Panel: Season Log =================== -->
+    <section class="card panel" id="panel-season" role="tabpanel">
+      <h2>Season Log <small class="muted">(2025/26, last 8 matches)</small></h2>
+      <div class="table-wrap">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Opponent</th>
+              <th>Result</th>
+              <th class="num-cell">Min</th>
+              <th class="num-cell">Saves</th>
+              <th class="num-cell">GA</th>
+              <th class="num-cell">CS</th>
+              <th class="num-cell">Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Nov 02</td><td>Northside United</td>  <td>W 3–1</td><td class="num-cell">90</td><td class="num-cell">4</td><td class="num-cell">1</td><td class="num-cell">—</td><td class="num-cell">7.6</td></tr>
+            <tr><td>Oct 26</td><td>Harbor Athletic</td>   <td>D 1–1</td><td class="num-cell">90</td><td class="num-cell">6</td><td class="num-cell">1</td><td class="num-cell">—</td><td class="num-cell">7.9</td></tr>
+            <tr><td>Oct 19</td><td>Cedar Park</td>        <td>W 2–0</td><td class="num-cell">3</td><td class="num-cell">3</td><td class="num-cell">0</td><td class="num-cell"></td><td class="num-cell">7.8</td></tr>
+            <tr><td>Oct 12</td><td>Eastvale City</td>     <td>L 0–2</td><td class="num-cell">90</td><td class="num-cell">7</td><td class="num-cell">2</td><td class="num-cell">—</td><td class="num-cell">6.9</td></tr>
+            <tr><td>Oct 05</td><td>Sunset Rangers</td>    <td>W 4–2</td><td class="num-cell">90</td><td class="num-cell">5</td><td class="num-cell">2</td><td class="num-cell">—</td><td class="num-cell">7.2</td></tr>
+            <tr><td>Sep 28</td><td>Granite Town FC</td>   <td>W 1–0</td><td class="num-cell">90</td><td class="num-cell">5</td><td class="num-cell">0</td><td class="num-cell"></td><td class="num-cell">8.4</td></tr>
+            <tr><td>Sep 21</td><td>Pinegrove</td>         <td>D 2–2</td><td class="num-cell">90</td><td class="num-cell">4</td><td class="num-cell">2</td><td class="num-cell">—</td><td class="num-cell">6.8</td></tr>
+            <tr><td>Sep 14</td><td>Old Bridge SC</td>     <td>W 2–1</td><td class="num-cell">90</td><td class="num-cell">8</td><td class="num-cell">1</td><td class="num-cell">—</td><td class="num-cell">8.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin-top: 0.8rem;">
+        Note: Oct 19 vs. Cedar Park — substituted at 3' (concussion protocol after a collision on a corner). Backup keeper finished out the clean sheet.
+      </p>
+    </section>
+
+    <!-- =================== Panel: Fixtures =================== -->
+    <section class="card panel" id="panel-fixtures" role="tabpanel">
+      <h2>Upcoming Fixtures</h2>
+
+      <div class="fixture">
+        <div class="date"><strong>NOV 09</strong>15:00</div>
+        <div class="meta">
+          <div class="opponent">vs. Glenwood Rovers</div>
+          <div class="where">Home · Riverside Stadium</div>
+        </div>
+        <span class="comp">League</span>
+      </div>
+
+      <div class="fixture">
+        <div class="date"><strong>NOV 16</strong>19:30</div>
+        <div class="meta">
+          <div class="opponent">at Maple Heights FC</div>
+          <div class="where">Away · Maple Heights Arena</div>
+        </div>
+        <span class="comp">League</span>
+      </div>
+
+      <div class="fixture">
+        <div class="date"><strong>NOV 22</strong>20:00</div>
+        <div class="meta">
+          <div class="opponent">vs. FK Solnedgang</div>
+          <div class="where">Home · Continental Cup Group Stage</div>
+        </div>
+        <span class="comp">Cont. Cup</span>
+      </div>
+
+      <div class="fixture">
+        <div class="date"><strong>NOV 30</strong>16:45</div>
+        <div class="meta">
+          <div class="opponent">vs. Iron Mills</div>
+          <div class="where">Neutral · National Cup Round of 16</div>
+        </div>
+        <span class="comp">Cup</span>
+      </div>
+
+      <div class="fixture">
+        <div class="date"><strong>DEC 07</strong>14:00</div>
+        <div class="meta">
+          <div class="opponent">vs. Westbrook City</div>
+          <div class="where">Home · Riverside Stadium</div>
+        </div>
+        <span class="comp">League</span>
+      </div>
+    </section>
+
+    <!-- =================== Panel: Highlights =================== -->
+    <section class="card panel" id="panel-film" role="tabpanel">
+      <h2>Highlight Reels</h2>
+      <p class="muted">
+        Drop a YouTube/Vimeo embed URL into the iframe <code>src</code> below
+        to replace the placeholder.
+      </p>
+
+      <h3>Saves of the Season Reel</h3>
+      <div class="video-wrap">
+        <div class="placeholder">▶  Top Saves 2025/26 (placeholder)</div>
+      </div>
+
+      <h3>Penalty Stops Compilation</h3>
+      <div class="video-wrap">
+        <div class="placeholder">▶  Penalty Saves (placeholder)</div>
+      </div>
+
+      <h3>Distribution &amp; Sweeper-Keeper Reel</h3>
+      <div class="video-wrap">
+        <div class="placeholder">▶  Distribution (placeholder)</div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Marco Vidal · Goalkeeper · Contact: <a href="mailto:agent@example.com">agent@example.com</a>
+  </footer>
+
+  <script>
+    /* ==========================================================
+       Tabs — one delegated listener, swaps `active` on both the
+       button and the matching panel. No frameworks, no fuss.
+       DRY: zero per-tab handlers.
+       ========================================================== */
+    (function initTabs() {
+      const tabs   = document.querySelectorAll('.tab');
+      const panels = document.querySelectorAll('.panel');
+
+      function activate(tabName) {
+        tabs.forEach(t => {
+          const on = t.dataset.tab === tabName;
+          t.classList.toggle('active', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        panels.forEach(p => {
+          p.classList.toggle('active', p.id === `panel-${tabName}`);
+        });
+      }
+
+      tabs.forEach(t => {
+        t.addEventListener('click', () => activate(t.dataset.tab));
+      });
+    })();
+  </script>
+</body>
+</html>
