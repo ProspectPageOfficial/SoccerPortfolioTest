@@ -337,11 +337,13 @@
     }
 
     .video-wrap iframe,
+    .video-wrap video,
     .video-wrap .placeholder {
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       border: 0;
     }
+    .video-wrap video { object-fit: contain; background: #000; }
 
     .video-wrap .placeholder {
       display: flex;
@@ -567,19 +569,12 @@
         to replace the placeholder.
       </p>
 
-      <h3>Saves of the Season Reel</h3>
+      <h3>Penalty Save</h3>
       <div class="video-wrap">
-        <div class="placeholder">▶  Top Saves 2025/26 (placeholder)</div>
-      </div>
-
-      <h3>Penalty Stops Compilation</h3>
-      <div class="video-wrap">
-        <div class="placeholder">▶  Penalty Saves (placeholder)</div>
-      </div>
-
-      <h3>Distribution &amp; Sweeper-Keeper Reel</h3>
-      <div class="video-wrap">
-        <div class="placeholder">▶  Distribution (placeholder)</div>
+        <video controls preload="metadata" playsinline>
+          <source src="videos/penalty-save.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </div>
     </section>
 
