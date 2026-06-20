@@ -308,6 +308,23 @@
       letter-spacing: 0.05em;
     }
 
+    /* ----------------------- About photo ----------------------- */
+    /* Larger display photo inside the About panel. Shares its src
+       with .player-photo so a single file update refreshes both. */
+    .about-photo {
+      display: block;
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin: 0 0 1.4rem;
+      background: #f0eee6;
+    }
+    @media (max-width: 540px) {
+      .about-photo { max-height: 320px; }
+    }
+
     /* ----------------------------- Video ----------------------------- */
     .video-wrap {
       position: relative;
@@ -364,13 +381,7 @@
     <div class="hero-inner">
       <!-- Swap src for a real photo; placeholder uses inline SVG -->
       <img class="player-photo" alt="Marco Vidal portrait"
-           src="data:image/svg+xml;utf8,
-             <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'>
-               <rect width='140' height='140' fill='%23cfd8d2'/>
-               <circle cx='70' cy='52' r='24' fill='%23222'/>
-               <path d='M22 130 Q70 78 118 130 Z' fill='%23ff6b35'/>
-               <text x='70' y='118' font-family='Inter, sans-serif' font-size='22' font-weight='700' text-anchor='middle' fill='white'>GK</text>
-             </svg>" />
+           src="images/marco.jpg" />
       <h1 id="player-name">Marco Vidal</h1>
       <p class="tagline">Goalkeeper · #1 · Riverside FC</p>
       <div class="badge-row">
@@ -398,6 +409,7 @@
     <!-- =================== Panel: About =================== -->
     <section class="card panel active" id="panel-about" role="tabpanel">
       <h2>About Me</h2>
+      <img class="about-photo" src="images/marco.jpg" alt="Marco Vidal" />
       <p>
         Marco is a modern shot-stopper who commands his box and starts attacks with
         his feet. Born in Rosario, he started out as an outfield player before a growth
