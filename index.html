@@ -323,6 +323,154 @@
       font-size: 0.85rem;
     }
 
+    /* ==========================================================
+       Owner Gate / Visitor mode
+       Visitors are the default (untrusted). When auth succeeds we
+       add `.is-owner` to <body>, which reveals `.owner-only` elements
+       and hides `.visitor-only` ones. Single CSS toggle, zero JS gymnastics.
+       ⚠️ This is UX-level gating only — the password hash lives in this
+       file, so a determined dev-tools snooper can bypass it. Don't put
+       anything actually secret behind it; it's an editing convenience.
+       ========================================================== */
+    .owner-only          { display: none !important; }
+    body.is-owner .owner-only   { display: revert !important; }
+    body.is-owner .visitor-only { display: none !important; }
+
+    /* Full-screen modal that asks Visitor vs Owner on first visit. */
+    .gate-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      display: grid; place-items: center;
+      background: rgba(14, 59, 31, 0.78);
+      backdrop-filter: blur(6px);
+      padding: 1.5rem;
+    }
+    .gate-overlay[hidden] { display: none; }
+    .gate-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      padding: 2rem 1.8rem;
+      max-width: 440px; width: 100%;
+      text-align: center;
+    }
+    .gate-card h2 {
+      margin: 0.2rem 0 0.4rem;
+      color: var(--pitch-deep);
+      font-size: 1.5rem;
+    }
+    .gate-card > div > p { margin: 0 0 1.3rem; color: var(--muted); font-size: 0.95rem; }
+    .gate-roles {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem;
+    }
+    .gate-role-btn {
+      padding: 1rem 0.8rem;
+      border: 2px solid rgba(14, 59, 31, 0.2);
+      background: var(--chalk);
+      border-radius: 10px;
+      font-family: inherit; font-weight: 700; font-size: 1rem;
+      color: var(--ink); cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+    }
+    .gate-role-btn:hover {
+      border-color: var(--pitch-deep);
+      background: #fff;
+      transform: translateY(-2px);
+    }
+    .gate-role-emoji { font-size: 1.7rem; }
+    .gate-role-btn small {
+      color: var(--muted); font-weight: 400; font-size: 0.78rem;
+    }
+    .gate-pw-form {
+      display: flex; flex-direction: column; gap: 0.55rem;
+      margin-top: 1rem; text-align: left;
+    }
+    .gate-pw-form label {
+      font-size: 0.85rem; font-weight: 600; color: var(--pitch-deep);
+    }
+    .gate-pw-form input {
+      padding: 0.7rem 0.9rem;
+      border: 1px solid rgba(14, 59, 31, 0.25);
+      border-radius: 8px;
+      font-family: inherit; font-size: 1rem;
+    }
+    .gate-pw-form input:focus {
+      outline: none;
+      border-color: var(--pitch-deep);
+      box-shadow: 0 0 0 3px rgba(14, 59, 31, 0.12);
+    }
+    .gate-pw-form .gate-actions {
+      display: flex; gap: 0.5rem; justify-content: space-between;
+      margin-top: 0.3rem;
+    }
+    .gate-pw-form button {
+      padding: 0.65rem 1.2rem;
+      font-family: inherit; font-weight: 700; font-size: 0.95rem;
+      border-radius: 8px; cursor: pointer; border: none;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    .gate-pw-form button[type="submit"] { background: var(--pitch-deep); color: #fff; }
+    .gate-pw-form button[type="submit"]:hover { background: var(--pitch); transform: translateY(-1px); }
+    .gate-back-btn {
+      background: transparent; color: var(--muted);
+      border: 1px solid rgba(0,0,0,0.1) !important;
+    }
+    .gate-back-btn:hover { background: rgba(0,0,0,0.04); }
+    .gate-error {
+      color: #b03030; font-size: 0.85rem; font-weight: 600;
+      min-height: 1.2em; margin: 0;
+    }
+    @keyframes gate-shake {
+      0%, 100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+    .gate-card.is-shaking { animation: gate-shake 0.3s ease; }
+
+    /* Floating mode pill — anchored to top-right of the hero (which is
+       already position: relative). Scrolls with the header and a subtle
+       white outline keeps it readable against the green gradient. */
+    .mode-pill {
+      position: absolute; top: 1rem; right: 1rem; z-index: 3;
+      background: var(--pitch-deep); color: #fff;
+      padding: 0.5rem 0.9rem; border-radius: 999px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.85rem; font-weight: 700;
+      transition: background 0.2s ease;
+    }
+    .mode-pill[hidden] { display: none; }
+    .mode-pill.is-visitor { background: var(--muted); }
+    .mode-pill button {
+      background: rgba(255,255,255,0.18); color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 0.25rem 0.6rem; border-radius: 999px;
+      font-family: inherit; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s ease;
+    }
+    .mode-pill button:hover { background: rgba(255,255,255,0.32); }
+
+    /* Small ghost button used for owner-only "Edit" affordances. */
+    .edit-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      margin-left: 0.6rem;
+      padding: 0.3rem 0.7rem;
+      background: var(--chalk); color: var(--pitch-deep);
+      border: 1px solid var(--line); border-radius: 999px;
+      font-family: inherit; font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease;
+      vertical-align: middle;
+    }
+    .edit-btn:hover { background: #fff; border-color: var(--pitch-deep); }
+    .edit-btn.is-editing { background: var(--kit-accent); color: #fff; border-color: var(--kit-accent); }
+    [contenteditable="true"] {
+      outline: 2px dashed var(--kit-accent);
+      outline-offset: 4px;
+      background: rgba(255, 107, 53, 0.06);
+      border-radius: 4px;
+    }
+
     /* ----------------------------- Mobile tweaks ----------------------------- */
     @media (max-width: 540px) {
       .hero { min-height: 320px; padding: 2.5rem 1rem 3.5rem; }
@@ -335,8 +483,54 @@
 
 <body>
 
+  <!-- ============================== OWNER GATE ============================== -->
+  <!-- First-visit modal: pick Visitor or Owner. Owner needs a password.
+       The whole thing is purely UX-level — see CSS comment + JS module. -->
+  <div id="gate" class="gate-overlay" hidden aria-modal="true" role="dialog" aria-labelledby="gate-title">
+    <div class="gate-card" id="gate-card">
+      <div data-gate-step="choose">
+        <h2 id="gate-title">Welcome 👋</h2>
+        <p>Are you visiting, or is this you, Vincent?</p>
+        <div class="gate-roles">
+          <button type="button" class="gate-role-btn" data-role="visitor">
+            <span class="gate-role-emoji">👀</span>
+            Visitor
+            <small>Just browsing</small>
+          </button>
+          <button type="button" class="gate-role-btn" data-role="owner">
+            <span class="gate-role-emoji">🧤</span>
+            Owner
+            <small>I'd like to edit</small>
+          </button>
+        </div>
+      </div>
+
+      <div data-gate-step="password" hidden>
+        <h2>Owner Access</h2>
+        <p>Enter the password to unlock editing.</p>
+        <form class="gate-pw-form" id="gate-pw-form">
+          <label for="gate-pw">Password</label>
+          <input type="password" id="gate-pw" autocomplete="current-password" required />
+          <p class="gate-error" id="gate-error" aria-live="polite"></p>
+          <div class="gate-actions">
+            <button type="button" class="gate-back-btn" data-gate-back>← Back</button>
+            <button type="submit">Unlock</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- ============================== HERO ============================== -->
   <header class="hero">
+    <!-- Mode switcher lives inside the hero so it sits in the top-right of
+         the green banner. Hidden on first paint until OwnerGate decides
+         whether to show the gate or restore a saved role. -->
+    <div id="mode-pill" class="mode-pill" hidden>
+      <span id="mode-pill-label">🧤 Owner mode</span>
+      <button type="button" id="mode-pill-switch">Switch to Visitor</button>
+    </div>
+
     <div class="hero-inner">
       <!-- Swap src for a real photo; placeholder uses inline SVG -->
       <img class="player-photo" alt="Vincent Ripellino portrait"
@@ -366,7 +560,10 @@
 
     <!-- =================== Panel: About =================== -->
     <section class="card panel active" id="panel-about" role="tabpanel">
-      <h2>About Me</h2>
+      <h2>About Me
+        <button type="button" id="about-edit-btn" class="edit-btn owner-only"
+                aria-label="Toggle inline editing of About Me">✏️ Edit</button>
+      </h2>
       <img class="about-photo" src="images/marco.jpg" alt="Vincent Ripellino" />
       <p>
         Vincent is a modern shot-stopper who commands his box and starts attacks with
@@ -513,6 +710,227 @@
 
       tabs.forEach(t => {
         t.addEventListener('click', () => activate(t.dataset.tab));
+      });
+    })();
+
+    /* ==========================================================
+       OwnerGate — Visitor / Owner mode toggle
+       Mirrors the pattern from lukethomasselzer.com, adapted for a
+       pure-static site (no /api/auth). Verification is a client-side
+       SHA-256 compare against OWNER_PW_HASH below. UX-level only.
+
+       🔑 TO CHANGE THE PASSWORD:
+         1. Pick a new password (let's call it NEW_PW).
+         2. Compute its SHA-256 in a terminal:
+              python -c "import hashlib; print(hashlib.sha256(b'NEW_PW').hexdigest())"
+            (or use any online SHA-256 generator)
+         3. Paste the resulting hex into OWNER_PW_HASH below.
+         4. Commit + push. Done.
+
+       Single source of truth for "what mode are we in?" → body.is-owner.
+       Persisted in sessionStorage so a tab refresh keeps your choice,
+       but closing the tab logs you back out (safer default for a shared
+       device than localStorage).
+       ========================================================== */
+    const OwnerGate = (() => {
+      // SHA-256 of "vincent" — change via the recipe above.
+      const OWNER_PW_HASH = "65c3f75641b22925c737ca657b126cd68c39e423349d43031cf9a3b9a18cee1f";
+      const SS_KEY        = "vrip_role";   // "owner" | "visitor"
+
+      // Web Crypto SHA-256 → lowercase hex. Async, browser-native, zero deps.
+      async function sha256Hex(text) {
+        const bytes = new TextEncoder().encode(text);
+        const buf   = await crypto.subtle.digest("SHA-256", bytes);
+        return Array.from(new Uint8Array(buf))
+                    .map(b => b.toString(16).padStart(2, "0"))
+                    .join("");
+      }
+
+      async function verifyPassword(password) {
+        try { return (await sha256Hex(password)) === OWNER_PW_HASH; }
+        catch (err) { console.warn("OwnerGate: hash failed:", err); return false; }
+      }
+
+      // Single mutation point: toggle class, persist, refresh pill. DRY.
+      function setMode(role) {
+        const isOwner = role === "owner";
+        document.body.classList.toggle("is-owner", isOwner);
+        sessionStorage.setItem(SS_KEY, role);
+        updatePill(role);
+      }
+
+      function updatePill(role) {
+        const pill      = document.getElementById("mode-pill");
+        const label     = document.getElementById("mode-pill-label");
+        const switchBtn = document.getElementById("mode-pill-switch");
+        if (!pill || !label || !switchBtn) return;
+        pill.hidden = false;
+        if (role === "owner") {
+          pill.classList.remove("is-visitor");
+          label.textContent     = "🧤 Owner mode";
+          switchBtn.textContent = "Switch to Visitor";
+        } else {
+          pill.classList.add("is-visitor");
+          label.textContent     = "👀 Visitor mode";
+          switchBtn.textContent = "Switch to Owner →";
+        }
+      }
+
+      function showGate(show) {
+        const gate = document.getElementById("gate");
+        if (gate) gate.hidden = !show;
+      }
+
+      function showStep(step) {
+        document.querySelectorAll("#gate [data-gate-step]").forEach(el => {
+          el.hidden = el.dataset.gateStep !== step;
+        });
+        const err = document.getElementById("gate-error");
+        if (err) err.textContent = "";
+        if (step === "password") {
+          setTimeout(() => document.getElementById("gate-pw")?.focus(), 50);
+        }
+      }
+
+      function shake() {
+        const card = document.getElementById("gate-card");
+        if (!card) return;
+        card.classList.add("is-shaking");
+        setTimeout(() => card.classList.remove("is-shaking"), 320);
+      }
+
+      // Going visitor is the lower-privilege mode → no password needed.
+      function switchToVisitor() {
+        setMode("visitor");
+        showGate(false);
+      }
+
+      // Going owner always requires the password challenge.
+      function promptForOwner() {
+        showStep("password");
+        showGate(true);
+      }
+
+      function init() {
+        // Role buttons on the first-visit chooser.
+        document.querySelectorAll("[data-role]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const role = btn.dataset.role;
+            if (role === "visitor") switchToVisitor();
+            else if (role === "owner") showStep("password");
+          });
+        });
+
+        // Back button on the password step.
+        document.querySelectorAll("[data-gate-back]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const saved = sessionStorage.getItem(SS_KEY);
+            if (saved) { showGate(false); }
+            else       { showStep("choose"); }
+          });
+        });
+
+        // Password form → SHA-256 compare.
+        const form = document.getElementById("gate-pw-form");
+        if (form) {
+          const submitBtn = form.querySelector('button[type="submit"]');
+          form.addEventListener("submit", async e => {
+            e.preventDefault();
+            const input = document.getElementById("gate-pw");
+            const err   = document.getElementById("gate-error");
+
+            err.textContent       = "";
+            submitBtn.disabled    = true;
+            const originalLabel   = submitBtn.textContent;
+            submitBtn.textContent = "Checking…";
+
+            const ok = await verifyPassword(input.value);
+
+            submitBtn.disabled    = false;
+            submitBtn.textContent = originalLabel;
+
+            if (ok) {
+              setMode("owner");
+              showGate(false);
+              input.value = "";
+            } else {
+              err.textContent = "Wrong password — try again.";
+              shake();
+              input.select();
+            }
+          });
+        }
+
+        // Mode-pill switch — action depends on current mode.
+        const switchBtn = document.getElementById("mode-pill-switch");
+        if (switchBtn) {
+          switchBtn.addEventListener("click", () => {
+            const isOwner = document.body.classList.contains("is-owner");
+            if (isOwner) switchToVisitor();
+            else         promptForOwner();
+          });
+        }
+
+        // Restore prior choice for this tab, or show the chooser gate.
+        const saved = sessionStorage.getItem(SS_KEY);
+        if (saved === "owner" || saved === "visitor") {
+          setMode(saved);
+          showGate(false);
+        } else {
+          updatePill("visitor");
+          document.getElementById("mode-pill").hidden = true;
+          showStep("choose");
+          showGate(true);
+        }
+      }
+
+      return { init, switchToVisitor, promptForOwner };
+    })();
+    window.OwnerGate = OwnerGate;
+    OwnerGate.init();
+
+    /* ==========================================================
+       About-section inline editor — demo of an owner-only feature.
+       Click ✏️ Edit (only visible to owners) to flip the About
+       paragraphs into contenteditable mode. Changes persist in
+       localStorage so a refresh keeps the edits, scoped to this
+       browser only (no backend). Click again to save & exit.
+       ========================================================== */
+    (function initAboutEditor() {
+      const LS_KEY = "vrip_about_html";
+      const btn    = document.getElementById("about-edit-btn");
+      const panel  = document.getElementById("panel-about");
+      if (!btn || !panel) return;
+
+      // The editable region = everything in the about panel except the
+      // <h2> title (which holds the Edit button itself) and the photo.
+      const editableSelector = "p, h3, ul";
+      const targets = () => panel.querySelectorAll(editableSelector);
+
+      // Restore any previously-saved edits on load.
+      const saved = localStorage.getItem(LS_KEY);
+      if (saved) {
+        // Render into a sandbox div, then replace just the editable bits.
+        // This way we don't blow away the <h2> / photo / Edit button.
+        const wrap = document.createElement("div");
+        wrap.innerHTML = saved;
+        const fresh = wrap.querySelectorAll(editableSelector);
+        const current = targets();
+        if (fresh.length === current.length) {
+          fresh.forEach((node, i) => current[i].replaceWith(node));
+        }
+      }
+
+      btn.addEventListener("click", () => {
+        const editing = btn.classList.toggle("is-editing");
+        targets().forEach(el => el.setAttribute("contenteditable", editing));
+        btn.textContent = editing ? "💾 Save" : "✏️ Edit";
+        if (!editing) {
+          // Persist a snapshot of the editable region. We serialize the
+          // outerHTML of each editable element joined together.
+          const snapshot = Array.from(targets()).map(el => el.outerHTML).join("\n");
+          localStorage.setItem(LS_KEY, snapshot);
+        }
       });
     })();
   </script>
