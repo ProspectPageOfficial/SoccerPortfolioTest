@@ -127,6 +127,18 @@
       backdrop-filter: blur(4px);
     }
 
+    /* Panel-scoped variant — same pill shape, but darker palette so the
+       badges remain readable on the white card background. Overrides the
+       hero-tuned translucent white. DRY: only the colors change. */
+    .panel .badge-row { margin-bottom: 1.25rem; justify-content: flex-start; }
+    .panel .badge {
+      background: var(--chalk);
+      border-color: var(--line);
+      color: var(--pitch-deep);
+      font-weight: 600;
+      backdrop-filter: none;
+    }
+
     /* ---------------------------- Layout ---------------------------- */
     main {
       max-width: var(--max-w);
@@ -537,13 +549,8 @@
            src="images/marco.jpg" />
       <h1 id="player-name">Vincent Ripellino</h1>
       <p class="tagline">Goalkeeper · #1 · Riverside FC</p>
-      <div class="badge-row">
-        <span class="badge">Right-handed</span>
-        <span class="badge">1.93 m</span>
-        <span class="badge">Age 25</span>
-        <span class="badge">Argentina</span>
-        <span class="badge">Reach 2.42 m</span>
-      </div>
+      <!-- Physical/biographical badges moved to the Soccer Bio panel below,
+           so the hero stays focused on identity (photo · name · tagline). -->
     </div>
   </header>
 
@@ -552,17 +559,17 @@
 
     <!-- Tab bar — buttons drive panel visibility by data-tab match -->
     <nav class="tabs" role="tablist" aria-label="Portfolio sections">
-      <button class="tab active" role="tab" data-tab="about"    aria-selected="true">About</button>
-      <button class="tab"        role="tab" data-tab="stats"    aria-selected="false">Career Stats</button>
+      <button class="tab active" role="tab" data-tab="about"    aria-selected="true">Personal Bio</button>
+      <button class="tab"        role="tab" data-tab="stats"    aria-selected="false">Soccer Bio</button>
       <button class="tab"        role="tab" data-tab="season"   aria-selected="false">Season Log</button>
       <button class="tab"        role="tab" data-tab="film"     aria-selected="false">Highlights</button>
     </nav>
 
     <!-- =================== Panel: About =================== -->
     <section class="card panel active" id="panel-about" role="tabpanel">
-      <h2>About Me
+      <h2>Personal Bio
         <button type="button" id="about-edit-btn" class="edit-btn owner-only"
-                aria-label="Toggle inline editing of About Me">✏️ Edit</button>
+                aria-label="Toggle inline editing of Personal Bio">✏️ Edit</button>
       </h2>
       <img class="about-photo" src="images/marco.jpg" alt="Vincent Ripellino" />
       <p>
@@ -596,8 +603,20 @@
 
     <!-- =================== Panel: Career Stats =================== -->
     <section class="card panel" id="panel-stats" role="tabpanel">
-      <h2>Career Stats <small class="muted">(all senior competitions)</small></h2>
+      <h2>Soccer Bio <small class="muted">(physical profile + senior career stats)</small></h2>
 
+      <!-- Physical/biographical pills — moved here from the hero so all
+           the soccer-side facts live in one tab. Visitors get the quick
+           glance; owners can later edit these inline (future work). -->
+      <div class="badge-row">
+        <span class="badge">Right-handed</span>
+        <span class="badge">1.93 m</span>
+        <span class="badge">Age 25</span>
+        <span class="badge">Argentina</span>
+        <span class="badge">Reach 2.42 m</span>
+      </div>
+
+      <h3>Career Totals <small class="muted">(all senior competitions)</small></h3>
       <div class="stat-grid">
         <div class="stat"><span class="num">104</span> <span class="label">Appearances</span></div>
         <div class="stat"><span class="num">38</span>  <span class="label">Clean Sheets</span></div>
