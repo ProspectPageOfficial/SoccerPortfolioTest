@@ -476,6 +476,123 @@ body.is-owner .visitor-only { display: none !important; }
 }
 .mode-pill button:hover { background: rgba(255,255,255,0.32); }
 
+/* ---------- Theme editor (owner-only palette changer) ----------
+   Pill that sits below the mode-pill in the hero. Same visual language
+   so the two controls read as a stacked group, not competing widgets. */
+.theme-pill {
+  position: absolute; top: 4rem; right: 1rem; z-index: 3;
+  background: var(--pitch-deep); color: #fff;
+  padding: 0.5rem 0.9rem; border-radius: 999px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font-family: inherit; font-size: 0.85rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s ease, transform 0.1s ease;
+}
+.theme-pill:hover  { background: var(--pitch); transform: translateY(-1px); }
+.theme-pill:active { transform: translateY(0); }
+.theme-pill[hidden] { display: none; }
+
+/* The modal itself — opens when the owner clicks the 🎨 pill. Native
+   <input type="color"> handles the actual color picker per-platform so
+   we only style the wrapper UI. */
+.theme-modal {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.theme-modal[hidden] { display: none; }
+.theme-modal-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(14, 59, 31, 0.55);
+  cursor: pointer;
+}
+.theme-modal-card {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.5rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+.theme-modal-card h3 {
+  margin: 0 0 0.6rem;
+  font-size: 1.15rem;
+  color: var(--pitch-deep);
+}
+.theme-modal-help {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 1.1rem;
+  line-height: 1.45;
+}
+.theme-modal-help strong { color: var(--ink); }
+
+.theme-field {
+  display: flex; align-items: center; justify-content: space-between;
+  margin: 0.6rem 0;
+  gap: 1rem;
+}
+.theme-field > span {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+/* Native color input — strip default chrome so it looks like a clean
+   clickable swatch. Cross-browser pseudo-elements normalize the look. */
+.theme-field input[type="color"] {
+  width: 52px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid rgba(14, 59, 31, 0.3);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.theme-field input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+.theme-field input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
+.theme-field input[type="color"]::-moz-color-swatch { border: none; border-radius: 5px; }
+
+/* Four-square live preview strip: derived-dark / primary / derived-light
+   / accent. JS updates these on every color-picker `input` event. */
+.theme-preview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+  margin: 0.9rem 0 0.3rem;
+}
+.theme-preview-swatch {
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.theme-status {
+  font-size: 0.85rem; min-height: 1.2em;
+  margin: 0.6rem 0 0; color: var(--muted);
+}
+.theme-status.is-error   { color: #b03030; font-weight: 600; }
+.theme-status.is-success { color: var(--pitch-deep); font-weight: 600; }
+
+.theme-modal-actions {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+  margin-top: 1.2rem;
+}
+.theme-modal-actions button {
+  padding: 0.55rem 1rem;
+  font-family: inherit; font-weight: 700; font-size: 0.9rem;
+  border-radius: 8px; cursor: pointer; border: none;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.theme-modal-actions .theme-save  { background: var(--pitch-deep); color: #fff; }
+.theme-modal-actions .theme-save:hover  { background: var(--pitch); transform: translateY(-1px); }
+.theme-modal-actions .theme-ghost {
+  background: transparent; color: var(--muted);
+  border: 1px solid rgba(0,0,0,0.12);
+}
+.theme-modal-actions .theme-ghost:hover { background: rgba(0,0,0,0.04); }
+
 /* Small ghost button used for owner-only "Edit" affordances. */
 .edit-btn {
   display: inline-flex; align-items: center; gap: 0.35rem;

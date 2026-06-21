@@ -271,4 +271,224 @@ createInlineEditor({
 // strictly career stats (Career Totals + By Competition table).
 // If we make the stat numbers editable later, register here.
 
+/* ==========================================================
+   ThemeEditor — owner-customizable site colors
+   Ported from lukethomasselzer.com's ThemeEditor, adapted for a
+   pure-static site (no /api/theme). Theme is persisted to
+   localStorage — per-browser, not globally published. Owners get
+   a 🎨 pill in the hero; clicking opens a modal with two native
+   color pickers (Primary + Accent), a live four-swatch preview,
+   and Save / Cancel / Reset actions.
+
+   We override exactly four CSS custom properties:
+     --pitch, --pitch-deep, --pitch-soft, --kit-accent.
+   The deep/soft shades are DERIVED from the owner's primary pick
+   via HSL lightness shifts — one decision updates the whole
+   pitch-green family coherently. DRY + Open/Closed: adding a new
+   theme slot is a one-line addition to applyTheme().
+   ========================================================== */
+const ThemeEditor = (() => {
+  const LS_KEY   = "vrip_theme";
+  // Match the :root defaults in styles.css so the modal opens to a
+  // sensible starting state when no theme has been saved yet.
+  const DEFAULTS = { primary: "#14532d", accent: "#ff6b35" };
+  // Lightness deltas eyeballed from the stock palette. Soft is a touch
+  // smaller than Luke's because the soccer green family is tighter.
+  const DEEP_DELTA = -0.15;
+  const SOFT_DELTA = +0.12;
+
+  // Snapshot of the theme active when the modal opened, so Cancel
+  // can revert any live-preview changes the user dragged through.
+  let snapshot = {};
+
+  // ---- Color math (hex ↔ HSL) ----
+  // Tiny self-contained color utility. 30 lines of well-known formulas
+  // beats pulling in a library for a single derivation pass.
+  function hexToHsl(hex) {
+    const m = /^#?([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})$/i.exec(hex);
+    if (!m) return null;
+    const r = parseInt(m[1], 16) / 255;
+    const g = parseInt(m[2], 16) / 255;
+    const b = parseInt(m[3], 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const l = (max + min) / 2;
+    let h = 0, s = 0;
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      if      (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+      else if (max === g) h = (b - r) / d + 2;
+      else                h = (r - g) / d + 4;
+      h /= 6;
+    }
+    return { h, s, l };
+  }
+  function hslToHex(h, s, l) {
+    let r, g, b;
+    if (s === 0) { r = g = b = l; }
+    else {
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+      const p = 2 * l - q;
+      r = hue2rgb(p, q, h + 1/3);
+      g = hue2rgb(p, q, h);
+      b = hue2rgb(p, q, h - 1/3);
+    }
+    const toHex = (x) => Math.round(x * 255).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }
+  function adjustLightness(hex, delta) {
+    const hsl = hexToHsl(hex);
+    if (!hsl) return hex;
+    const l = Math.max(0, Math.min(1, hsl.l + delta));
+    return hslToHex(hsl.h, hsl.s, l);
+  }
+
+  // Apply (or clear) the four overridable CSS custom properties on <html>.
+  // Calling with {} cleanly resets to the original pitch-green palette
+  // — single function for both apply and reset paths.
+  function applyTheme(theme) {
+    const root = document.documentElement.style;
+    if (theme && theme.primary) {
+      root.setProperty("--pitch",      theme.primary);
+      root.setProperty("--pitch-deep", adjustLightness(theme.primary, DEEP_DELTA));
+      root.setProperty("--pitch-soft", adjustLightness(theme.primary, SOFT_DELTA));
+    } else {
+      root.removeProperty("--pitch");
+      root.removeProperty("--pitch-deep");
+      root.removeProperty("--pitch-soft");
+    }
+    if (theme && theme.accent) root.setProperty("--kit-accent", theme.accent);
+    else                       root.removeProperty("--kit-accent");
+  }
+
+  // ---- localStorage I/O (no backend on this site) ----
+  function loadTheme() {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function saveTheme(theme)  { localStorage.setItem(LS_KEY, JSON.stringify(theme)); }
+  function clearTheme()      { localStorage.removeItem(LS_KEY); }
+
+  // ---- Modal helpers ----
+  function setStatus(text, kind) {
+    const el = document.getElementById("theme-status");
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove("is-error", "is-success");
+    if (kind) el.classList.add("is-" + kind);
+  }
+
+  function updateSwatches(primary, accent) {
+    const set = (sel, color) => {
+      const el = document.querySelector(sel);
+      if (el) el.style.background = color;
+    };
+    set('[data-preview="deep"]',    adjustLightness(primary, DEEP_DELTA));
+    set('[data-preview="primary"]', primary);
+    set('[data-preview="soft"]',    adjustLightness(primary, SOFT_DELTA));
+    set('[data-preview="accent"]',  accent);
+  }
+
+  function openModal() {
+    const current = loadTheme();
+    snapshot = { ...current };
+    const modal        = document.getElementById("theme-modal");
+    const primaryInput = document.getElementById("theme-primary");
+    const accentInput  = document.getElementById("theme-accent");
+    primaryInput.value = current.primary || DEFAULTS.primary;
+    accentInput.value  = current.accent  || DEFAULTS.accent;
+    updateSwatches(primaryInput.value, accentInput.value);
+    setStatus("", null);
+    modal.hidden = false;
+  }
+
+  function closeModal() {
+    document.getElementById("theme-modal").hidden = true;
+    setStatus("", null);
+  }
+
+  // Cancel = revert any live-preview changes back to whatever was in
+  // effect when the modal opened, then close.
+  function cancelModal() {
+    applyTheme(snapshot);
+    closeModal();
+  }
+
+  function wire() {
+    const triggerBtn   = document.getElementById("theme-edit-btn");
+    const primaryInput = document.getElementById("theme-primary");
+    const accentInput  = document.getElementById("theme-accent");
+    const saveBtn      = document.getElementById("theme-save-btn");
+    const resetBtn     = document.getElementById("theme-reset-btn");
+
+    if (triggerBtn) triggerBtn.addEventListener("click", openModal);
+
+    // Live preview as the owner drags the native color wheel. `input`
+    // fires on every value change (vs `change` which only fires on commit).
+    const onPickerChange = () => {
+      const primary = primaryInput.value;
+      const accent  = accentInput.value;
+      applyTheme({ primary, accent });
+      updateSwatches(primary, accent);
+    };
+    if (primaryInput) primaryInput.addEventListener("input", onPickerChange);
+    if (accentInput)  accentInput .addEventListener("input", onPickerChange);
+
+    if (saveBtn) saveBtn.addEventListener("click", () => {
+      const theme = { primary: primaryInput.value, accent: accentInput.value };
+      saveTheme(theme);
+      // Snapshot becomes the just-saved theme so a later Cancel doesn't
+      // revert what we just persisted.
+      snapshot = theme;
+      setStatus("Saved!", "success");
+      setTimeout(closeModal, 600);
+    });
+
+    // Backdrop + Cancel button both have data-theme-close — one listener,
+    // two trigger points. DRY.
+    document.querySelectorAll("[data-theme-close]").forEach((el) => {
+      el.addEventListener("click", cancelModal);
+    });
+
+    if (resetBtn) resetBtn.addEventListener("click", () => {
+      if (!confirm("Reset site theme to the original pitch-green palette?")) return;
+      clearTheme();
+      applyTheme({});
+      // Refresh the picker values to the defaults so the swatches match.
+      primaryInput.value = DEFAULTS.primary;
+      accentInput.value  = DEFAULTS.accent;
+      updateSwatches(DEFAULTS.primary, DEFAULTS.accent);
+      snapshot = {};
+      setStatus("Reset to defaults.", "success");
+    });
+
+    // Esc closes the modal (same effect as Cancel).
+    document.addEventListener("keydown", (e) => {
+      const modal = document.getElementById("theme-modal");
+      if (e.key === "Escape" && modal && !modal.hidden) cancelModal();
+    });
+  }
+
+  function init() {
+    // Apply saved theme on page load for THIS browser. Runs synchronously
+    // before first paint when this script is in <head defer>, which
+    // prevents a flash of the default palette. (Currently the script is
+    // bottom-of-body, so there may be a tiny one-frame flash on cold
+    // load. Acceptable trade-off for keeping all JS in one file.)
+    applyTheme(loadTheme());
+    wire();
+  }
+
+  return { init, openModal };
+})();
+window.ThemeEditor = ThemeEditor;
+ThemeEditor.init();
 

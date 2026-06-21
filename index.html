@@ -60,6 +60,52 @@
     </div>
   </div>
 
+  <!-- ============================== THEME EDITOR MODAL ============================== -->
+  <!-- Owner-only popover. Native <input type="color"> handles the actual
+       picker on every OS (macOS/Windows/iOS/Android). Saved theme lives
+       in localStorage — per-browser, not published to other visitors.
+       That's a static-site trade-off; for cross-device sync you'd need
+       a backend (out of scope). -->
+  <div id="theme-modal" class="theme-modal" hidden role="dialog"
+       aria-labelledby="theme-modal-title" aria-modal="true">
+    <div class="theme-modal-backdrop" data-theme-close></div>
+    <div class="theme-modal-card" role="document">
+      <h3 id="theme-modal-title">🎨 Site Theme</h3>
+      <p class="theme-modal-help">
+        Pick two colors. <strong>Primary</strong> drives the pitch-green family
+        (hero, mode pill, accents); <strong>Accent</strong> drives the kit
+        color (edit outlines, highlights). <em>Saved per browser</em> — the
+        site has no backend, so the theme lives in your local storage.
+      </p>
+
+      <label class="theme-field">
+        <span>Primary color</span>
+        <input type="color" id="theme-primary" value="#14532d" />
+      </label>
+
+      <label class="theme-field">
+        <span>Accent color</span>
+        <input type="color" id="theme-accent" value="#ff6b35" />
+      </label>
+
+      <!-- Live swatch preview: darker-derived / primary / lighter-derived / accent. -->
+      <div class="theme-preview" aria-hidden="true">
+        <span class="theme-preview-swatch" data-preview="deep"></span>
+        <span class="theme-preview-swatch" data-preview="primary"></span>
+        <span class="theme-preview-swatch" data-preview="soft"></span>
+        <span class="theme-preview-swatch" data-preview="accent"></span>
+      </div>
+
+      <p id="theme-status" class="theme-status" role="status" aria-live="polite"></p>
+
+      <div class="theme-modal-actions">
+        <button type="button" id="theme-save-btn"   class="theme-save">💾 Save</button>
+        <button type="button" id="theme-cancel-btn" class="theme-ghost" data-theme-close>Cancel</button>
+        <button type="button" id="theme-reset-btn"  class="theme-ghost">Reset to Defaults</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============================== HERO ============================== -->
   <header class="hero">
     <!-- Mode switcher lives inside the hero so it sits in the top-right of
@@ -69,6 +115,16 @@
       <span id="mode-pill-label">🧤 Owner mode</span>
       <button type="button" id="mode-pill-switch">Switch to Visitor</button>
     </div>
+
+    <!-- Theme editor trigger. Owner-only so visitors never see it.
+         Sits directly below the mode-pill (top: 4rem). ThemeEditor
+         wires up by id, so DOM placement is the only contract. -->
+    <button type="button" id="theme-edit-btn"
+            class="theme-pill owner-only"
+            title="Edit site theme colors"
+            aria-label="Edit site theme colors">
+      🎨 Edit Site Theme
+    </button>
 
     <div class="hero-inner">
       <!-- Swap src for a real photo; placeholder uses inline SVG -->
